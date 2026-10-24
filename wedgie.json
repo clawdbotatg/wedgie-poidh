@@ -3,13 +3,31 @@
     {
       "mod": "poidh",
       "name": "Poidh Bounties",
-      "about": "Browse live poidh bounties on Ethereum, Base and Arbitrum: rewards, descriptions and claims. Needs the bridge on your computer.",
-      "files": ["poidh/poidh.py"],
+      "about": "Browse live poidh bounties on Ethereum, Base and Arbitrum: rewards, descriptions and claims. Keep its wedgie.dev page open.",
+      "files": [
+        "poidh/poidh.py"
+      ],
       "entry": "run",
-      "fw": "0.3.36",
-      "usb": true,
+      "fw": "0.3.61",
       "label": "#168c34",
-      "icon": ["............", "....kkkk....", ".kkkkwwkkkk.", ".kwwwwwwwwk.", ".kwwkkkkwwk.", ".kwkggggkwk.", ".kwkgwwgkwk.", ".kwkggggkwk.", ".kwwkkkkwwk.", ".kwwwwwwwwk.", ".kkkkkkkkkk.", "............"]
+      "icon": [
+        "............",
+        "....kkkk....",
+        ".kkkkwwkkkk.",
+        ".kwwwwwwwwk.",
+        ".kwwkkkkwwk.",
+        ".kwkggggkwk.",
+        ".kwkgwwgkwk.",
+        ".kwkggggkwk.",
+        ".kwwkkkkwwk.",
+        ".kwwwwwwwwk.",
+        ".kkkkkkkkkk.",
+        "............"
+      ],
+      "net": [
+        "poidh.xyz",
+        "api.coinbase.com"
+      ]
     }
   ]
 }
