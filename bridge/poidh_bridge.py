@@ -222,6 +222,15 @@ def ago(ts):
     return "%dmo" % (dt // (86400 * 30))
 
 
+def ago_words(ts):
+    a = ago(ts)
+    if not a:
+        return "a while"
+    n, unit = int(a.rstrip("mhdo")), a.lstrip("0123456789")
+    word = {"m": "minute", "h": "hour", "d": "day", "mo": "month"}[unit]
+    return "%d %s%s" % (n, word, "" if n == 1 else "s")
+
+
 def short_addr(a):
     a = a if isinstance(a, str) else ""
     if re.fullmatch(r"0x[0-9a-fA-F]{40}", a):
@@ -313,7 +322,8 @@ def bounty_page(p, m):
     kind = "open bounty" if b.get("isMultiplayer") else "solo bounty"
     body.append([("%s  %s" % (u, kind)) if u else kind, MUTED, 1])
     body.append(["by " + short_addr(b.get("issuer")), MUTED, 1])
-    body.append(["posted %s ago  id %d/%s" % (ago(b.get("createdAt")), bid, b.get("onChainId", "?")), MUTED, 1])
+    body.append(["posted %s ago" % ago_words(b.get("createdAt")), MUTED, 1])
+    body.append(["poidh id %d, on-chain %s" % (bid, b.get("onChainId", "?")), MUTED, 1])
     if claims:
         body.append(["%d claim%s%s" % (len(claims), "" if len(claims) == 1 else "s",
                                          ", %d accepted" % accepted if accepted else ""), GREEN, 1])
@@ -493,6 +503,12 @@ class Link(BaseHTTPRequestHandler):
     only on 127.0.0.1. virtual-link.js (in the wedgie.dev tab) carries the lines to the virtual wedgie."""
     server_version = "poidh-bridge"
     poidh = None
+    timeout = 10                    # seconds a client may take to send its request
+    port = 8765
+
+    def host_ok(self):
+        """DNS rebinding guard: only requests addressed to this machine by its loopback name."""
+        return self.headers.get("Host", "") in ("127.0.0.1:%d" % self.port, "localhost:%d" % self.port)
 
     def log_message(self, *a):
         pass
@@ -508,7 +524,7 @@ class Link(BaseHTTPRequestHandler):
         return o in ALLOWED_ORIGINS
 
     def do_OPTIONS(self):
-        self.send_response(204 if self.headers.get("Origin", "") in ALLOWED_ORIGINS else 403)
+        self.send_response(204 if self.host_ok() and self.headers.get("Origin", "") in ALLOWED_ORIGINS else 403)
         self.cors()
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -522,7 +538,7 @@ class Link(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path != "/io" or self.headers.get("Origin", "") not in ALLOWED_ORIGINS:
+        if self.path != "/io" or not self.host_ok() or self.headers.get("Origin", "") not in ALLOWED_ORIGINS:
             self.send_response(403)
             self.send_header("Content-Length", "0")
             self.end_headers()
@@ -558,7 +574,7 @@ class Link(BaseHTTPRequestHandler):
 
 
 def run_virtual(p, port):
-    Link.poidh = p
+    Link.poidh, Link.port = p, port
     srv = ThreadingHTTPServer(("127.0.0.1", port), Link)
     here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "virtual-link.js")
     log("bridge listening on http://127.0.0.1:%d (wedgie.dev pages only)" % port)
